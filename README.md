@@ -53,8 +53,9 @@ UIColor *beijingColor = [UIColor greenColor]; (X拼音)
 
 ###空格
 
-* 缩进使用4个空格，确保在Xcode偏好设置来设置。
-* 方法大括号和其他大括号(if/else/switch/while 等.) 总是在同一行语句打开但在新行中关闭（不强制，新一行开始也可以，但开始{和结束}对其）
+缩进使用4个空格，确保在Xcode偏好设置来设置。
+
+方法大括号和其他大括号(if/else/switch/while 等.) 总是在同一行语句打开但在新行中关闭（不强制，新一行开始也可以，但开始{和结束}对其）
 
 应该
 ```
@@ -87,8 +88,9 @@ else {
 }  
 ```
 
-* 在方法之间应该有且只有一行，这样有利于在视觉上更清晰和更易于组织。
-* 当一个函数有多个参数时并且超过100个字符时，调用时尽量使用多行冒号对齐的方式调用，参数中包含block的可以依情况而定。
+在方法之间应该有且只有一行空格，这样有利于在视觉上更清晰和更易于组织。
+
+当一个函数有多个参数时并且超过100个字符时，调用时尽量使用多行冒号对齐的方式调用，但参数中包含block的可以依情况而定。
 
 应该
 ```
@@ -120,12 +122,33 @@ else {
                  }]; 
 ```
 
+###换行符
+
+换行符是一个很重要的主题，因为它的风格指南主要为了打印和网上的可读性。
+
+通过Xcode的Preference － Text Editing中设置page guideline为100， 保证代码行最大字符数100
+
+例如：
+
+```
+self.productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];  
+```
+
+一行很长的代码应该分成两行代码，下一行用两个空格隔开。
+
+```
+self.productsRequest = [[SKProductsRequest alloc]   
+  initWithProductIdentifiers:productIdentifiers]; 
+```
+
+
 ###注释
 
-* 注释很重要，但除了开头的版权声明，尽可能把代码写的如同文档一样，让别人直接看代码就知道意思，写代码时别担心名字太长，相信Xcode的提示功能。
-* 任何被使用的注释都必须保持最新,如果注释已失效请立刻被删除。
+注释很重要，但除了开头的版权声明，尽可能把代码写的如同文档一样，让别人直接看代码就知道意思，写代码时别担心名字太长，相信Xcode的提示功能。
+任何被使用的注释都必须保持最新,如果注释已失效请立刻被删除。
 
 针对函数的注释，推荐使用XCode插件[VVDocumenter](https://github.com/onevcat/VVDocumenter-Xcode)
+
 
 ###命名
 
@@ -197,7 +220,7 @@ id varnm;
 不应该：
 
 ```
--(void)setT:(NSString *)text i:(UIImage *)image;  
+- (void)setT:(NSString *)text i:(UIImage *)image;  
 - (void)sendAction:(SEL)aSelector :(id)anObject :(BOOL)flag;  
 - (id)taggedView:(NSInteger)tag;  
 - (instancetype)initWithWidth:(CGFloat)width andHeight:(CGFloat)height;  
@@ -230,21 +253,23 @@ id varnm;
 }  
 ```
 
-属性特性
+###属性特性
 
 所有属性特性应该显式地列出来，有助于新手阅读代码。属性特性的顺序应该是storage、atomicity，与在Interface Builder连接UI元素时自动生成代码一致。
 
 应该：
 
-[cpp] view plaincopy
+```
 @property (weak, nonatomic) IBOutlet UIView *containerView;  
-@property (strong, nonatomic) NSString *tutorialName;  
+@property (strong, nonatomic) NSString *tutorialName; 
+```
+
 不应该：
 
-[cpp] view plaincopy
+```
 @property (nonatomic, weak) IBOutlet UIView *containerView;  
 @property (nonatomic) NSString *tutorialName;  
-
+```
 
 NSString应该使用copy而不是strong的属性特性。
 
@@ -317,7 +342,7 @@ static CGFloat const kImageThumbnailHeight = 50.0;
 
 ###枚举类型
 
-当使用enum时，推荐使用新的固定基本类型规格，因为它有更强的类型检查和代码补全。现在SDK有一个宏NS_ENUM()来帮助和鼓励你使用固定的基本类型。
+当使用enum时，推荐使用新的固定基本类型规格，因为它有更强的类型检查和代码补全。通过宏NS_ENUM()来帮助和鼓励你使用固定的基本类型。
 
 例如：
 
@@ -426,6 +451,7 @@ result = a > b ? x = c > d ? c : d : y;  (X 嵌套)
 
 Init方法应该遵循Apple生成代码模板的命名规则，返回类型应该使用instancetype而不是id。
 
+应该
 ```
 - (instancetype)init {  
   self = [super init];  
@@ -446,7 +472,7 @@ Init方法应该遵循Apple生成代码模板的命名规则，返回类型应�
 @end  
 ```
 
-###CGRect函数
+###CGRect函数 （）
 
 当访问CGRect里的x, y, width, 或 height时，应该使用CGGeometry函数而不是直接通过结构体来访问。引用Apple的CGGeometry：
 
@@ -513,40 +539,11 @@ CGRect frame = (CGRect){ .origin = CGPointZero, .size = frame.size };
 }  
 ```
 
-这会防止possible and sometimes prolific crashes。
-
-###换行符
-
-换行符是一个很重要的主题，因为它的风格指南主要为了打印和网上的可读性。
-
-例如：
-
-```
-self.productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];  
-```
-
-一行很长的代码应该分成两行代码，下一行用两个空格隔开。
-
-```
-self.productsRequest = [[SKProductsRequest alloc]   
-  initWithProductIdentifiers:productIdentifiers]; 
-```
+这会防止可能发生的崩溃。
 
 ###Xcode工程
 
 尽可能在target的Build Settings打开"Treat Warnings as Errors，和启用以下additional warnings。如果你需要忽略特殊的警告，使用Clang's pragma feature。
-
-
-
-
-### 一句话规则
-变量名小写字母开头
-常量以小写字母k开头，后续首字母大写
-声明类或方法时，注意空格的使用，参数过多时可换行保持对齐，
-调用方法时也是如此，参数都写在一行或换行冒号对齐，
-代码行最大字符数100
-尽可能保证 .h文件的简洁性，可以不公开的API就不要公开了，写在实现文件中即可。
-写delegate的时候类型应该为weak弱引用，以避免循环引用，当delegate对象不存在后，我们写的delegate也就没有存在意义了自然是需要销毁的
 
 
 #参考
