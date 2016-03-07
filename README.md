@@ -233,9 +233,7 @@ id varnm;
 
 星号表示变量是指针。例如， NSString *text 既不是 NSString* text 也不是 NSString * text，除了一些特殊情况下常量。
 
-私有变量应该尽可能代替实例变量的使用。尽管使用实例变量是一种有效的方式，但更偏向于使用属性来保持代码一致性。
-
-通过使用'back'属性(_variable，变量名前面有下划线)直接访问实例变量应该尽量避免，除了在初始化方法(init, initWithCoder:, 等…)，dealloc 方法和自定义的setters和getters。
+通过使用'back'属性(_variable，变量名前面有下划线)直接访问实例变量应该尽量避免，除了在初始化方法(init, initWithCoder: 等…)，dealloc 方法和自定义的setters和getters。
 
 应该：
 
@@ -541,10 +539,49 @@ CGRect frame = (CGRect){ .origin = CGPointZero, .size = frame.size };
 
 这会防止可能发生的崩溃。
 
-###Xcode工程
+### Block的循环引用问题
 
-尽可能在target的Build Settings打开"Treat Warnings as Errors，和启用以下additional warnings。如果你需要忽略特殊的警告，使用Clang's pragma feature。
+Block确实是个好东西, 但是用起来一定要注意循环引用的问题, 否则一不小心你就会发现, 我的dealloc肿木不走了...
 
+```
+__weak typeof(self) weakSelf = self;
+dispatch_block_t block = ^{
+    [weakSelf doSomething]; // weakSelf != nil
+    // preemption, weakSelf turned nil
+    [weakSelf doSomethingElse]; // weakSelf == nil
+};
+```
+
+如此在上面定义一个weakSelf, 然后在block体里面使用该weakSelf就可以避免循环引用的问题. 那么问题来了...是不是这样就完全木有问题了? 很不幸, 答案是NO, 还是有问题。问题是block体里面的self是weak的, 所以就有可能在某一个时段self已经被释放了, 这时block体里面再使用self那就是nil, 然后...然后就悲剧了...那么肿么办呢?
+```
+__weak typeof(self) weakSelf = self;
+myObj.myBlock = ^{
+    __strong typeof(self) strongSelf = weakSelf;
+    if (strongSelf) {
+        [strongSelf doSomething]; // strongSelf != nil
+        // preemption, strongSelf still not nil
+        [strongSelf doSomethingElse]; // strongSelf != nil
+    }
+    else {
+        // Probably nothing...
+        return;
+    }
+};
+```
+解决方法很简单, 就是在block体内define一个strong的self, 然后执行的时候判断下self是否还在, 如果在就继续执行下面的操作, 否则return或抛出异常.
+
+什么情况下会出现block里面self循环引用的问题? 这个问题问的好, 简单来说就是双边引用, 如果block是self类的property (此时self已经retain了block), 然后在block内又引用了self, 这个情况下就肯定会循环引用了...
+
+### 规避Crash
+* ［多线程同步问题造成的Crash］
+这种崩溃其实还挺常见的, 尤其是在多线程泛滥使用的今天.
+对于数据源或model类一定要注意多线程同时访问的情况, 推荐使用GCD的串行队列来同步线程。
+
+* ［Observer的移除］
+现在的代码里面很多需要用到Observer, 根据被观察对象的状态来相应的Update UI或者执行某个操作. 注册observer很简单, 但是移除的时候就出问题了, 要么是忘记移除observer了, 要么是移除的时机不对. 如果某个被观察对象已经被释放了, observer还在, 那结果只能是crash了, 所以切记至少在dealloc里面移除一下observer。
+
+* ［NSArray, NSDictionary成员的判空保护］
+在addObject或insertObject到NSArray或者NSDictionary时最好加一下判空保护, 尤其是网络相关的逻辑, 如果网络返回为空(jason解析出来为空), 但你还是毅然决然的add到array里面, 那么自然就会崩溃了。
 
 #参考
 - [Apple Coding Guideline](https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/CodingGuidelines/Articles/NamingBasics.html#//apple_ref/doc/uid/20001281-1002931-BBCFHEAB)
